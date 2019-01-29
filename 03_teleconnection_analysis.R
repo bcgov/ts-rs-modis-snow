@@ -42,41 +42,6 @@ mod_cor_BC_year_mean = cor_iter(df_BC_year_mean, groups = c("measurement","tel")
 mod_lm_BC_seas_mean  = lm_iter(df_BC_seas_mean, groups = c("measurement","tel","season"), Y = "days", X = "index", textName = "mod_lm_BC_seas_mean")
 mod_cor_BC_seas_mean = cor_iter(df_BC_seas_mean, groups = c("measurement","tel","season"), Y = "days", X = "index", textName = "mod_cor_BC_seas_mean")
 
-# PLOT LM COEFFICIENTS
-
-ggplot(mod_lm_BC_seas_mean, aes(group = season)) +
-  geom_vline(xintercept=c(1.5,2.5,3.5), linetype=2, color = "gray")+
-  geom_errorbar(aes(x = measurement, ymin = estimate - error_mean, ymax = estimate + error_mean), position = position_dodge(width=1)) +
-  geom_point(aes(x = measurement, y = estimate, fill = cut(p.value, breaks = c(-Inf, 0.05, Inf), labels = c("<=0.05", ">0.05")), shape = season, group = season), position=position_dodge(width=1), size = 3) +
-  geom_hline(yintercept = 0) +
-  scale_fill_manual(values = c("dark grey","white")) +
-  scale_shape_manual(values = c(21,22,23,24)) +
-  scale_x_discrete(labels = parse(text = levels(mod_lm_BC_seas_mean$measurement))) +
-  facet_wrap(~tel, ncol = 7) +
-  theme_few(base_size = 25) +
-  guides(fill = guide_legend(override.aes = list(shape=21, size = 3)), shape = guide_legend(override.aes = list(size = 3)))+
-  theme(aspect.ratio = 1.6) +
-  labs(x = "", y = expression(paste("Trend (d ?",C^-1,")", sep = "")), fill = "Significance", shape = "Season")
-
-ggsave(filename = paste(getwd(),"/5_Draft/Figures/", "mod_lm_BC_seas_mean_", ns, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 12, height = 12, device = "pdf")
-
-# PLOT COR COEFFICIENTS
-ggplot(mod_cor_BC_seas_mean, aes(group = season)) +
-  geom_vline(xintercept=c(1.5,2.5,3.5), linetype=2, color = "gray")+
-  geom_errorbar(aes(x = measurement, ymin = estimate - error_mean, ymax = estimate + error_mean), position = position_dodge(width=1)) +
-  geom_point(aes(x = measurement, y = estimate, fill = cut(p.value, breaks = c(-Inf, 0.05, Inf), labels = c("<=0.05", ">0.05")), shape = season, group = season), position=position_dodge(width=1), size = 3) +
-  geom_hline(yintercept = 0) +
-  scale_fill_manual(values = c("dark grey","white")) +
-  scale_shape_manual(values = c(21,22,23,24)) +
-  scale_x_discrete(labels = parse(text = levels(mod_lm_BC_seas_mean$measurement))) +
-  facet_wrap(~tel, ncol = 7) +
-  theme_few(base_size = 20) +
-  guides(fill = guide_legend(override.aes = list(shape=21, size = 3)), shape = guide_legend(override.aes = list(size = 3)))+
-  theme(aspect.ratio = 1.6) +
-  labs(x = "", y = "Spearman Correlation Coefficient", fill = "Significance", shape = "Season")
-
-ggsave(filename = paste(getwd(),"/5_Draft/Figures/", "mod_cor_BC_seas_mean_", ns, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 12, height = 12, device = "pdf")
-
 #### 6: CALC BY zone == LM AND COR (TEL/MSM) ####
 
 # SUMMARISE MEAN VALUES PER YEAR

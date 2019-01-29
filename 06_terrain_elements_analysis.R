@@ -72,3 +72,4 @@ ggsave(plot = both, filename = paste(getwd(),"/5_Draft/Figures/", "elevation_box
 #   theme_few() + theme(aspect.ratio = 1) +
 #   labs(title = "mod_cor_zone_seas_mean", x = "Elevation in metres", y = "coefficient")
 #   ggsave(filename = paste(getwd(),"/5_Draft/Figures/", "elev_mod_cor_zone_seas_mean_", zone_exp, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 15, height = 15, device = "pdf")
+
