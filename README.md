@@ -1,11 +1,11 @@
 <a id="devex-badge" rel="Exploration" href="https://github.com/BCDevExchange/assets/blob/master/README.md"><img alt="Being designed and built, but in the lab. May change, disappear, or be buggy." style="border-width:0" src="https://assets.bcdevexchange.org/images/badges/exploration.svg" title="Being designed and built, but in the lab. May change, disappear, or be buggy." /></a>
 
-British Columbia Snow Duration Analysis
-=======================================
+Timing and Duration of Snow Cover in British Columbia
+=====================================================
 
 ### Overview
 
-R code for snow duration analysis and visualisation research project in British Columbia for the past 16 years. Moderate Resolution Imaging Sectro-Radiometer (MODIS) snow cover data are obtained from Google Earth Engine and cleaned for R input.
+Analysis of a 500 m gridded raster of the onset, melt and duration of snow cover in British Columbia using the MODIS Snow Cover Product (Collection 6) between 2002-2018. 
 
 ### Project Status
 
@@ -13,11 +13,11 @@ This project is under active development.
 
 ### Goals/Roadmap
 
-The goal is to explore linkages between variables (climatic, topographic) and the timing and duration of snow cover in British Columbia using remote sensing data at moderate resolution.
+Explain interannual variability by exploring ocean-climate teleconnections, time, and terrain as predictors of the onset, melt and duration of snow by hydrologic zones.
 
 ### Getting Help or Reporting an Issue
 
-To report bugs/issues/feature requests, please file an [issue](https://github.com/bcgov/snow-dur-analysis/issues/).
+To report bugs/issues/feature requests, please file an [issue](https://github.com/bcgov/ts-rs-modis-snow/issues/).
 
 ### How to Contribute
 
