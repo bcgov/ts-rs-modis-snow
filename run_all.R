@@ -1,4 +1,6 @@
 source("01_load.R")
 source("02_clean.R")
-source("03_analysis.R")
-source("04_output.R")
+source("03_teleconnection_analysis.R")
+source("04_teleconnection_output.R")
+source("05_change_over_time_analysis.R")
+source("06_terrain_elements_analysis.R")
