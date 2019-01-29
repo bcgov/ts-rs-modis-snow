@@ -17,8 +17,8 @@
     rm(list=ls(all=TRUE))
 
   # SET WD LAPTOP vs WORK MACHINE
-    setwd("C:/Users/bevington/Dropbox/FLNRO_p1/Research_Cryosphere/Project_Snow/Paper_2018_snow_modis")
-    # setwd("G:/Dropbox/FLNRO_p1/Research_Cryosphere/Project_Snow/Paper_2018_snow_modis")
+    # setwd("C:/Users/bevington/Dropbox/FLNRO_p1/Research_Cryosphere/Project_Snow/Paper_2018_snow_modis")
+    setwd("G:/Dropbox/FLNRO_p1/Research_Cryosphere/Project_Snow/Paper_2018_snow_modis")
 
 #### 1: LOAD LIBRARIES ####
 
@@ -55,14 +55,15 @@
 #### 2: IMPORT  ####
 
   # READ GOOGLE EARTH ENGINE RANDOM SAMPLE OUTPUT
-    df = tibble::as_tibble(read.csv("3_Modis_Output/Loess_Output/20190102/MODIS_Samp_25_2_a_20k_final.csv", stringsAsFactors = F))
+    # df = tibble::as_tibble(read.csv("3_Modis_Output/Loess_Output/20190102/MODIS_Samp_25_2_a_20k_final.csv", stringsAsFactors = F))
+    df = tibble::as_tibble(read.csv("3_Modis_Output/Loess_Output/20190129/MODIS_Samp_s35_e10_b2_merged_100k.csv", stringsAsFactors = F))
 
   # IMPORT TELECONNECTION DATA
     tel = as_tibble(read.csv("0_Data_ONI_PDO/original_TEL_events.csv"))
 
 #### 3: DEFINE FUNCTIONS ####
 
-    #### LINEAR MODEL ####
+  # LINEAR MODEL
 
     # Run Linear Model and LOOP n times with random adjustment, summarise mean slope difference
 
@@ -130,7 +131,7 @@
       return(lm_summary)
     }
 
-    #### SPEARMAN CORRELATION ####
+  # SPEARMAN CORRELATION
 
     # Run Spearman Correlation and LOOP n times with random adjustment, summarise mean coefficient difference
 

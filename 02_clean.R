@@ -32,7 +32,7 @@
     # SD_OFF = as.numeric(format(as.Date(paste(year, "-09-01", sep = ""))+SD_OFF, "%j")))
 
   # Counters
-    n_iterations = 10
+    n_iterations = 1000
     n = dim(df)[1]
     ns = paste(n,n_iterations, sep="_")
 
