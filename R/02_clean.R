@@ -49,6 +49,9 @@
              typeS = as.character(cut(SD_INT, c(0, 0.07*365, 0.30*365, 0.90*365, 365),
                                       labels = c("nosnow","intermit","seasonal","permanent"))))
 
+  # write.csv(df, paste(getwd(),"/5_Draft/Figures/", "dat01_df","_", format(x = now(), format = "%Y%m%d%H%M%S.csv"), sep = ""))
+
+
     summary(df)
     unique(df$grS)
   # Optional code to change SD_ON and SD_OFF from "days since 1-Sep to Julian days

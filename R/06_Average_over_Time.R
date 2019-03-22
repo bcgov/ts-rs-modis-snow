@@ -110,6 +110,6 @@ ggplot(bind.m, aes(year, factor(HYDROLOGICZONE_NAME, levels = zones))) +
   theme(aspect.ratio = 0.8, legend.position = "bottom", legend.title.align = 0.5, axis.title.y = element_blank(), plot.margin=grid::unit(c(0,0,0,0), "mm"))
 
 
-ggsave(filename = paste(getwd(),"/5_Draft/Figures/", "Snowseason_", zone_exp, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 18, height = 18, device = "pdf")
+ggsave(filename = paste(getwd(),"/5_Draft/Figures/", "fig06_snowseason_", zone_exp, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 18, height = 18, device = "pdf")
 
 

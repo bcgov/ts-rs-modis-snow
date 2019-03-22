@@ -197,3 +197,6 @@ both = grid.arrange(
 ggsave(plot = both, filename = paste(getwd(),"/5_Draft/Figures/", "fig11_boxplot_grZ_", zone_exp, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 10, height = 10, device = "pdf")
 
 
+write.csv(year_grZ_lm %>% filter(p.value <= 0.05), paste(getwd(),"/5_Draft/Figures/", "sup19_year_grZ_lm", ns, "_", format(x = now(), format = "%Y%m%d%H%M%S.csv"), sep = ""))
+write.csv(year_grZ_cor %>% filter(p.value <= 0.05), paste(getwd(),"/5_Draft/Figures/", "sup20_year_grZ_cor", ns, "_", format(x = now(), format = "%Y%m%d%H%M%S.csv"), sep = ""))
+
