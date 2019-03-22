@@ -10,132 +10,190 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and limitations under the License.
 
+# PLOT ASWS STATION VS MODIS ERROR
 
+asws = read.csv("G:/Dropbox/FLNRO_p1/Research_Cryosphere/Project_Snow/Paper_2018_snow_modis/corr_err_dist_bw2_s15_e10.csv")
+asws.m= gather(asws,"measurement","value")
+asws.m$measurement = ordered(asws.m$measurement, levels = c("start_corr","end_corr","dur_corr"), labels = msm_name)
+
+asws.m %>% group_by(measurement) %>% summarize_all(mean)
+
+ggplot(asws.m, aes(value)) +
+  geom_density(aes(), fill = "grey", alpha = 0.8) +
+  facet_grid(~measurement, labeller = labeller(measurement = label_parsed)) +
+  # geom_vline(aes(xintercept = median(value))) +
+  # geom_vline(aes(xintercept = mean(value)), linetype = 2) +
+  theme_few(base_size = 20) +
+  theme(aspect.ratio = 0.5) +
+  scale_x_continuous(breaks = seq(-100,100,20)) +
+  labs(x = "MODIS - ASWS Difference (days)", y = "Density")
+
+ggsave(filename = paste(getwd(),"/5_Draft/Figures/", "fig05_error_", ns, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), height = 8, device = "pdf")
+
+#### FIGURE 7 ####
 
 # PLOT LM COEFFICIENTS
 
-ggplot(mod_lm_BC_seas_mean, aes(group = season)) +
+mod_lm_BC_seas_mean = read.csv("G:/Dropbox/FLNRO_p1/Research_Cryosphere/Project_Snow/Paper_2018_snow_modis/5_Draft/Figures/sup03_mod_lm_BC_seas_mean_HZ_820430_10000_820430_10000_20190221091049_days_index.csv")
+mod_lm_BC_seas_mean$measurement = ordered(mod_lm_BC_seas_mean$measurement, levels = msm_name, labels = msm_name)
+
+lm = ggplot(mod_lm_BC_seas_mean, aes(group = season)) +
   geom_vline(xintercept=c(1.5,2.5,3.5), linetype=2, color = "gray")+
   geom_errorbar(aes(x = measurement, ymin = estimate - error_mean, ymax = estimate + error_mean), position = position_dodge(width=1)) +
   geom_point(aes(x = measurement, y = estimate, fill = cut(p.value, breaks = c(-Inf, 0.05, Inf), labels = c("<=0.05", ">0.05")), shape = season, group = season), position=position_dodge(width=1), size = 3) +
   geom_hline(yintercept = 0) +
-  scale_fill_manual(values = c("dark grey","white")) +
+  scale_fill_manual(values = c("black","white")) +
+  scale_shape_manual(values = c(21,22,23,24)) +
+  scale_x_discrete(labels = parse(text = levels(mod_lm_BC_seas_mean$measurement))) +
+  facet_wrap(~tel, ncol = 7) +
+  theme_few(base_size = 25) +
+  guides(fill = guide_legend(override.aes = list(shape=21, size = 3)), shape = guide_legend(override.aes = list(size = 3)))+
+  theme(aspect.ratio = 1.6, legend.position = "left") +
+  labs(x = "", y = expression(paste("LLS (d ?",C^-1,")", sep = "")), fill = "Significance", shape = "Season")
+
+# PLOT COR COEFFICIENTS
+
+mod_cor_BC_seas_mean = read.csv("G:/Dropbox/FLNRO_p1/Research_Cryosphere/Project_Snow/Paper_2018_snow_modis/5_Draft/Figures/sup04_mod_cor_BC_seas_mean_HZ_820430_10000_820430_10000_20190221091708_days_index.csv")
+mod_cor_BC_seas_mean$measurement = ordered(mod_cor_BC_seas_mean$measurement, levels = msm_name, labels = msm_name)
+
+cor = ggplot(mod_cor_BC_seas_mean, aes(group = season)) +
+  geom_vline(xintercept=c(1.5,2.5,3.5), linetype=2, color = "gray")+
+  geom_errorbar(aes(x = measurement, ymin = estimate - error_mean, ymax = estimate + error_mean), position = position_dodge(width=1)) +
+  geom_point(aes(x = measurement, y = estimate, fill = cut(p.value, breaks = c(-Inf, 0.05, Inf), labels = c("<=0.05", ">0.05")), shape = season, group = season), position=position_dodge(width=1), size = 3) +
+  geom_hline(yintercept = 0) +
+  scale_fill_manual(values = c("black","white")) +
   scale_shape_manual(values = c(21,22,23,24)) +
   scale_x_discrete(labels = parse(text = levels(mod_lm_BC_seas_mean$measurement))) +
   facet_wrap(~tel, ncol = 7) +
   theme_few(base_size = 25) +
   guides(fill = guide_legend(override.aes = list(shape=21, size = 3)), shape = guide_legend(override.aes = list(size = 3)))+
   theme(aspect.ratio = 1.6) +
-  labs(x = "", y = expression(paste("Trend (d ?",C^-1,")", sep = "")), fill = "Significance", shape = "Season")
+  labs(x = "", y = expression(italic("r")[S]), fill = "Significance", shape = "Season")
 
-ggsave(filename = paste(getwd(),"/5_Draft/Figures/", "mod_lm_BC_seas_mean_", ns, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 12, height = 12, device = "pdf")
+# SAVE FIG 7
+
+both = gridExtra::grid.arrange(lm,cor,ncol=2)
+ggsave(plot = both, filename = paste(getwd(),"/5_Draft/Figures/", "fig07_mod_cor+lm_BC_seas_mean_", zone_exp, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 20, height = 10, device = "pdf")
+
+
+#### FIGURE 8 #####
+
+# PLOT LM COEFFICIENTS
+
+mod_lm_zone_seas_mean = read.csv("G:/Dropbox/FLNRO_p1/Research_Cryosphere/Project_Snow/Paper_2018_snow_modis/5_Draft/Figures/sup07_mod_lm_zone_seas_mean_HZ_820430_10000_820430_10000_20190221204151_days_index.csv")
+mod_lm_zone_seas_mean$measurement = ordered(mod_lm_zone_seas_mean$measurement, levels = msm_name, labels = msm_name)
+
+lm = zone_plot(mod_lm_zone_seas_mean, -30,30,5) +
+  facet_grid(tel+season~measurement, labeller = labeller(measurement = label_parsed))   +
+  labs(title = "", x = "", y = "", fill = expression(paste("LLS (d ?",C^-1,")", sep = "")))
 
 # PLOT COR COEFFICIENTS
-ggplot(mod_cor_BC_seas_mean, aes(group = season)) +
-  geom_vline(xintercept=c(1.5,2.5,3.5), linetype=2, color = "gray")+
-  geom_errorbar(aes(x = measurement, ymin = estimate - error_mean, ymax = estimate + error_mean), position = position_dodge(width=1)) +
-  geom_point(aes(x = measurement, y = estimate, fill = cut(p.value, breaks = c(-Inf, 0.05, Inf), labels = c("<=0.05", ">0.05")), shape = season, group = season), position=position_dodge(width=1), size = 3) +
-  geom_hline(yintercept = 0) +
-  scale_fill_manual(values = c("dark grey","white")) +
-  scale_shape_manual(values = c(21,22,23,24)) +
-  scale_x_discrete(labels = parse(text = levels(mod_lm_BC_seas_mean$measurement))) +
-  facet_wrap(~tel, ncol = 7) +
-  theme_few(base_size = 20) +
-  guides(fill = guide_legend(override.aes = list(shape=21, size = 3)), shape = guide_legend(override.aes = list(size = 3)))+
-  theme(aspect.ratio = 1.6) +
-  labs(x = "", y = "Spearman Correlation Coefficient", fill = "Significance", shape = "Season")
 
-ggsave(filename = paste(getwd(),"/5_Draft/Figures/", "mod_cor_BC_seas_mean_", ns, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 12, height = 12, device = "pdf")
+mod_cor_zone_seas_mean = read.csv("G:/Dropbox/FLNRO_p1/Research_Cryosphere/Project_Snow/Paper_2018_snow_modis/5_Draft/Figures/sup08_mod_cor_zone_seas_mean_HZ_820430_10000_820430_10000_20190221215418_days_index.csv")
+mod_cor_zone_seas_mean$measurement = ordered(mod_cor_zone_seas_mean$measurement, levels = msm_name, labels = msm_name)
 
-#### 7: PLOT BY zone == LM AND COR (TEL/MSM) ####
-
-# Colors
-colors = c("black","darkred","white","dodgerblue4","dodgerblue")
-
-# General plotting function
-zone_plot = function(data) {
-  # data = mod_lm_zone_year_mean
-  sig = merge(zones, filter(data, p.value <= 0.05), by = zone_name)
-  not = merge(zones, filter(data, p.value > 0.05), by = zone_name)
-  max = max(sig$estimate)
-  min = min(sig$estimate)
-
-  # zone_no = cbind(data.frame(coordinates(as(sig, "Spatial"))), sig$p.value)
-  # names(zone_no) = c("x","y","sig")
-
-  ggplot() +
-    geom_sf(data = sig, aes(fill = estimate)) +
-    geom_sf(data = not, fill = "grey") +
-    # geom_point(data = zone_no, aes(x, y)) +
-    # geom_text_repel(data = zone_no,aes(x = x, y = y, label = no), size = 2) +
-    scale_fill_gradientn(colors=colors,
-                         values=rescale(c(min,0,max)),
-                         limits=c(min,max)) +
-    guides(fill = guide_colourbar(barwidth = 20, barheight = 1, direction = "horizontal", title.position = "top", frame.colour = "black", ticks.colour = "black")) +
-    theme_few(base_size = 15) +
-    theme(axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank(), aspect.ratio = 1, panel.grid = element_line(linetype = 3, color = "light gray"), legend.position = "bottom", legend.title.align = 0.5)}
-
-# mod_lm_zone_year_mean
-zone_plot(mod_lm_zone_year_mean) +
-  facet_grid(tel~measurement, labeller = labeller(measurement = label_parsed))   +
-  labs(title = "mod_lm_zone_year_mean", x = "", y = "", fill = expression(paste("Trend (d ?",C^-1,")", sep = "")))
-
-ggsave(filename = paste(getwd(),"/5_Draft/Figures/", "mod_lm_zone_year_mean_", zone_exp, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 12, height = 12, device = "pdf")
-
-# mod_lm_zone_seas_mean
-zone_plot(mod_lm_zone_seas_mean) +
+cor = zone_plot(mod_cor_zone_seas_mean, -1,1,0.2) +
   facet_grid(tel+season~measurement, labeller = labeller(measurement = label_parsed))   +
-  labs(title = "mod_lm_zone_seas_mean", x = "", y = "", fill = expression(paste("Trend (d ?",C^-1,")", sep = "")))
+  labs(title = "", x = "", y = "", fill = expression(italic("r")[S]))
 
-ggsave(filename = paste(getwd(),"/5_Draft/Figures/", "mod_lm_zone_seas_mean_", zone_exp, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 12, height = 18, device = "pdf")
+# SAVE FIG 8
 
-# mod_cor_zone_year_mean
-zone_plot(mod_cor_zone_year_mean) +
-  facet_grid(tel~measurement, labeller = labeller(measurement = label_parsed))   +
-  labs(title = "mod_cor_zone_year_mean", x = "", y = "", fill = "Spearman Correlation Coefficient")
+both = gridExtra::grid.arrange(lm,cor,ncol=2)
+ggsave(plot = both, filename = paste(getwd(),"/5_Draft/Figures/", "fig08_mod_cor+lm_zone_seas_mean_", zone_exp, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 15, height = 18, device = "pdf")
 
-ggsave(filename = paste(getwd(),"/5_Draft/Figures/", "mod_cor_zone_year_mean_", zone_exp, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 12, height = 12, device = "pdf")
 
-# mod_cor_zone_seas_mean
-zone_plot(mod_cor_zone_seas_mean) +
-  facet_grid(tel+season~measurement, labeller = labeller(measurement = label_parsed))   +
-  labs(title = "mod_cor_zone_seas_mean", x = "", y = "", fill = "Spearman Correlation Coefficient")
+#### FIGURE 10 ####
 
-ggsave(filename = paste(getwd(),"/5_Draft/Figures/", "mod_cor_zone_seas_mean_", zone_exp, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 12, height = 18, device = "pdf")
+mod_cor_zone_year_mean = read.csv("G:/Dropbox/FLNRO_p1/Research_Cryosphere/Project_Snow/Paper_2018_snow_modis/5_Draft/Figures/sup06_mod_cor_zone_year_mean_HZ_820430_10000_820430_10000_20190221112004_days_index.csv")
+mod_cor_zone_year_mean$measurement = ordered(mod_cor_zone_year_mean$measurement, levels = msm_name, labels = msm_name)
 
-#### 8: PLOT MOST IMPORTANT TEL FROM ANNUAL DATA ####
-
-# From COR
 most_imp_year_cor = mod_cor_zone_year_mean %>%
   mutate(sig = p.value <= 0.05) %>%
-  group_by_(.dots = c(zone_name, "measurement")) %>%
+  filter(!is.na(HYDROLOGICZONE_NAME)) %>%
+  group_by(.dots = c(zone_name, "measurement")) %>%
   filter(abs(estimate) == max(abs(estimate)))
 
 ggplot() +
   geom_sf(data = filter(merge(zones, most_imp_year_cor,by=zone_name), sig == T), aes(fill = tel)) +
   geom_sf(data = filter(merge(zones, most_imp_year_cor,by=zone_name), sig == F), fill = "grey") +
+  scale_fill_viridis_d() +
   facet_grid(~measurement, labeller = labeller(measurement = label_parsed)) +
   theme_few(base_size = 15) +
-  theme(axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank(), aspect.ratio = 1, panel.grid = element_line(linetype = 3, color = "light gray")) +
-  labs(fill = "Season", title = "most_imp_year_cor")
+  theme(legend.position="bottom", axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank(), aspect.ratio = 1, panel.grid = element_line(linetype = 3, color = "light gray")) +
+  labs(fill = "", title = "most_imp_year_cor")
 
-ggsave(filename = paste(getwd(),"/5_Draft/Figures/", "most_imp_year_cor_", zone_exp, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 12, height = 12, device = "pdf")
+ggsave(filename = paste(getwd(),"/5_Draft/Figures/", "fig10_most_imp_year_cor_", zone_exp, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 10, height = 12, device = "pdf")
 
-# PLOT MOST IMPORTANT SEASON FROM SEASONAL DATA
+#### FIGURE 9 ####
 
-# From COR
+mod_cor_zone_seas_mean = read.csv("G:/Dropbox/FLNRO_p1/Research_Cryosphere/Project_Snow/Paper_2018_snow_modis/5_Draft/Figures/sup08_mod_cor_zone_seas_mean_HZ_820430_10000_820430_10000_20190221215418_days_index.csv")
+mod_cor_zone_seas_mean$measurement = ordered(mod_cor_zone_seas_mean$measurement, levels = msm_name, labels = msm_name)
+mod_cor_zone_seas_mean$season = ordered(mod_cor_zone_seas_mean$season, levels = c("Spring","Summer","Fall","Winter"), labels = c("Spring","Summer","Fall","Winter"))
+
 most_imp_seas_cor = mod_cor_zone_seas_mean %>%
   mutate(sig = p.value <= 0.05) %>%
+  filter(!is.na(HYDROLOGICZONE_NAME)) %>%
   group_by_(.dots = c(zone_name, "measurement", "tel")) %>%
   filter(abs(estimate) == max(abs(estimate)))
 
 ggplot() +
   geom_sf(data = filter(merge(zones,most_imp_seas_cor,by=zone_name), sig == T), aes(fill = season)) +
   geom_sf(data = filter(merge(zones,most_imp_seas_cor,by=zone_name), sig == F), fill = "grey") +
+  scale_fill_viridis_d() +
   facet_grid(tel~measurement, labeller = labeller(measurement = label_parsed)) +
   theme_few(base_size = 15) +
-  theme(axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank(), aspect.ratio = 1, panel.grid = element_line(linetype = 3, color = "light gray")) +
-  labs(fill = "Season", title = "most_imp_seas_cor")
+  theme(legend.position="bottom", axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank(), aspect.ratio = 1, panel.grid = element_line(linetype = 3, color = "light gray")) +
+  labs(fill = "", title = "most_imp_seas_cor")
 
-ggsave(filename = paste(getwd(),"/5_Draft/Figures/", "most_imp_seas_cor_", zone_exp, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 12, height = 12, device = "pdf")
+ggsave(filename = paste(getwd(),"/5_Draft/Figures/", "fig09_most_imp_seas_cor_", zone_exp, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 10, height = 12, device = "pdf")
+
+
+#### Figure 11 ####
+
+terrain_cor = function(raw_df, groups, textName) {
+  cor_oni = raw_df %>% dplyr::group_by_(.dots = groups) %>%
+    dplyr::summarise(estimate = cor.test(days, oni, method = "spearman", exact=FALSE)$estimate,
+                     p.value = cor.test(days, oni, method = "spearman", exact=FALSE)$p.value)
+  cor_pdo = raw_df %>% dplyr::group_by_(.dots = groups) %>%
+    dplyr::summarise(estimate = cor.test(days, pdo, method = "spearman", exact=FALSE)$estimate,
+                     p.value = cor.test(days, pdo, method = "spearman", exact=FALSE)$p.value)
+  cor = rbind(cor_oni %>% mutate(tel = "ONI"),
+              cor_pdo %>% mutate(tel = "PDO"))
+  return(cor)
+}
+
+
+df_tel_year_all_m = df_tel_year_all_m %>% filter(!is.na(lat))
+
+year_grZ_cor = terrain_cor(raw_df = df_tel_year_all_m, groups = c(zone_name,"grZ","measurement"), "grZ_cor")
+
+
+terrain_lm = function(raw_df, groups, textName) {
+  lm_oni = raw_df %>% dplyr::group_by_(.dots = groups) %>%
+    do(broom::tidy(lm(days~oni, data = ., na.action = na.omit))) %>%
+    dplyr::filter(term != "(Intercept)")
+  lm_pdo = raw_df %>% dplyr::group_by_(.dots = groups) %>%
+    do(broom::tidy(lm(days~pdo, data = ., na.action = na.omit))) %>%
+    dplyr::filter(term != "(Intercept)")
+  lm = rbind(lm_oni %>% mutate(tel = "ONI"),
+             lm_pdo %>% mutate(tel = "PDO"))
+  return(lm)
+}
+
+
+year_grZ_lm = terrain_lm(raw_df = df_tel_year_all_m, groups = c(zone_name,"grZ","measurement"), "grZ_cor")
+
+give.cor = function(x){return(c(y = min(x)-0.1, label = length(x)))}
+give.lm = function(x){return(c(y = min(x)-2, label = length(x)))}
+
+library(gridExtra)
+both = grid.arrange(
+  ggplot(year_grZ_lm %>% filter(p.value <= 0.05), aes(as.factor(grZ), estimate)) +  geom_hline(yintercept = 0) +geom_boxplot(aes(fill = tel)) + facet_grid(~measurement, labeller = labeller(measurement = label_parsed)) + theme_few() + theme(aspect.ratio = 1, axis.text.x = element_text(angle = 90, hjust = 1), legend.position = "none") + labs(x = "Elevation (m)", y = expression(paste("LLS (d ?",C^-1,")", sep = "")), fill = "") + scale_fill_manual(values = c("gray","white")) +
+    stat_summary(aes(group = tel), fun.data = give.lm, geom = "text", position = position_dodge(width = 1), size=3,  family="sans"),
+  ggplot(year_grZ_cor %>% filter(p.value <= 0.05), aes(as.factor(grZ), estimate)) +  geom_hline(yintercept = 0) +geom_boxplot(aes(fill = tel)) + facet_grid(~measurement, labeller = labeller(measurement = label_parsed)) + theme_few() + theme(aspect.ratio = 1, axis.text.x = element_text(angle = 90, hjust = 1), legend.position = "bottom") + labs(x = "Elevation (m)", y = expression(italic("r")[S]), fill = "") + scale_fill_manual(values = c("gray","white")) +
+    stat_summary(aes(group = tel), fun.data = give.cor, geom = "text", position = position_dodge(width = 1), size=3,  family="sans"),
+  ncol = 1)
+
+ggsave(plot = both, filename = paste(getwd(),"/5_Draft/Figures/", "fig11_boxplot_grZ_", zone_exp, "_", format(x = now(), format = "%Y%m%d%H%M%S.pdf"), sep = ""), width = 10, height = 10, device = "pdf")
+
 

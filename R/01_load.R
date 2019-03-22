@@ -22,54 +22,58 @@
 
 #### 1: LOAD LIBRARIES ####
 
-  # DATA MANUPULATION LIBRARIES
-    library(reshape2);
-    library(broom);
-    library(tidyverse);
+    library(reshape2)
+    library(broom)
+    library(tidyverse)
     library(lubridate)
-    library(lme4)
-    library(Hmisc)
     library(data.table)
     library(doBy)
-
-  # LOAD SPATIAL TOOLS
-    library(sf);
+    library(sf)
     library(sp)
-    library(spdep)
-    library(bcmaps);
-    library(viridis)
-
-  # LOAD GGPLOT TOOLS
-    library(ggrepel)
-    library(ggExtra)
-    library(ggpubr)
-    library(GGally)
-    library(ggmap);
-    library(ggpmisc);
-    library(RColorBrewer)
+    library(bcmaps)
     library(ggthemes);
-    library(scales);
-    library(hexbin);
-    library(gridExtra);
+    library(cowplot)
+    library(scales)
 
-#### 2: IMPORT  ####
+    #### 2: IMPORT  ####
 
-  # READ GOOGLE EARTH ENGINE RANDOM SAMPLE OUTPUT
-    # df = tibble::as_tibble(read.csv("3_Modis_Output/Loess_Output/20190102/MODIS_Samp_25_2_a_20k_final.csv", stringsAsFactors = F))
-    df = tibble::as_tibble(read.csv("3_Modis_Output/Loess_Output/20190129/MODIS_Samp_s35_e10_b2_merged_100k.csv", stringsAsFactors = F))
+  # IMPORT TERRAIN per point
+
+    terrain = read.csv(list.files(path = "3_Modis_Output/20190211_loess_daily", pattern = "csv$", full.names = T))
+    names(terrain) = c("id", "aspect", "eastness", "elev", "lat", "lon", "northness", "slope", "water_mask_mode", ".geo")
+
+  # IMPORT MODIS OUTPUT
+
+    files = list.files(path = "3_Modis_Output/20190211_loess_daily", pattern = "txt$", full.names = T)
+
+    dat = tibble()
+
+    for(file in files){
+      csv = tibble::as_tibble(read.csv(file))
+      csv = merge(csv %>% dplyr::select(-lat, -lon, -elev), terrain, by=c("id"))
+      dat = rbind(dat, csv)}
+
+    remove(csv, file, files, terrain)
 
   # IMPORT TELECONNECTION DATA
+
     tel = as_tibble(read.csv("0_Data_ONI_PDO/original_TEL_events.csv"))
+
+  # IMPORT ASWS / MODIS DIFFERENCE
+
+    asws = as_tibble(read.csv("3_Modis_Output/20190211_loess_daily/asws_diff/corr_err_dist_bw2_s15_e10.csv"))
+    names(asws) = c("SD[ON]","SD[OFF]","SD[DUR]")
+
 
 #### 3: DEFINE FUNCTIONS ####
 
   # LINEAR MODEL
 
     # Run Linear Model and LOOP n times with random adjustment, summarise mean slope difference
+    # lm_iter(
 
     lm_iter = function(raw_df, groups, Y, X, textName)
-
-    {
+      {
 
       # Run linear model on raw data
       lm_raw = raw_df %>%
@@ -79,16 +83,19 @@
 
       # Loop the same model n times for error estimation
       for(i in 1:n_iterations)
-
       {
+        # i = 1
+        # print(i)
 
-        print(i)
+        # Randomply sample the difference csv
+        dif = asws[sample(nrow(asws),dim(raw_df %>% filter(measurement == "SD[ON]"))[1], replace = T),] %>% gather(measurement, asws_diff)
+        # print(summary(dif))
+        raw_df = raw_df %>% arrange(measurement)
 
-        # Create list of offsets the length of Y
-        offset = rnorm(length(raw_df[[Y]]), 0 , 5)
+        raw_df$asws_diff = dif$asws_diff
 
-        # Adjust Y by offest
-        raw_df$adj = raw_df[[Y]] + offset
+
+        raw_df$adj = raw_df[[Y]] + raw_df$asws_diff
 
         # Run linear model for adjusted days
         lm_adj = raw_df %>%
@@ -102,6 +109,7 @@
           y      = lm_adj %>% dplyr::select(-statistic, -p.value, -std.error),
           by     = c(groups, "term"),
           suffix = c("",paste("_",as.character(i),sep="")))
+        # print(lm_raw)
       }
 
 
@@ -125,18 +133,16 @@
           -est_iter_max,
           -error_minus,
           -error_plus)
-
+      # print(lm_summar)y
       filename = paste("5_Draft/Figures/", textName, "_", zone_exp, "_", n, "_", n_iterations, "_", format(x = now(), format = "%Y%m%d%H%M%S"), "_", Y, "_", X,".csv", sep = "")
+      # print(filename)
       write.csv(x = lm_summary, file = filename)
-      return(lm_summary)
-    }
 
-  # SPEARMAN CORRELATION
-
-    # Run Spearman Correlation and LOOP n times with random adjustment, summarise mean coefficient difference
+        return(lm_summary)
+      }
 
     cor_iter = function(raw_df, groups, Y, X, textName)
-    {
+      {
 
       # Run linear model on raw data
       cor_raw = raw_df %>%
@@ -149,14 +155,17 @@
       # Loop the same model n times for error estimation
       for(i in 1:n_iterations)
       {
-        print(i)
+        # print(i)
 
-        # Create list of offsets the length of Y
-        offset = rnorm(length(raw_df[[Y]]), 0 , 5)
+        # Randomply sample the difference csv
+        dif = asws[sample(nrow(asws),dim(raw_df %>% filter(measurement == "SD[ON]"))[1], replace = T),] %>% gather(measurement, asws_diff)
+        # print(summary(dif))
+        raw_df = raw_df %>% arrange(measurement)
 
-        # Adjust Y by offest
-        raw_df$adj = raw_df[[Y]] + offset
+        raw_df$asws_diff = dif$asws_diff
 
+
+        raw_df$adj = raw_df[[Y]] + raw_df$asws_diff
 
         # Run linear model for adjusted days
         cor_adj = raw_df %>%
@@ -172,6 +181,9 @@
           y      = cor_adj %>% dplyr::select(-p.value),
           by     = c(groups),
           suffix = c("",paste("_",as.character(i),sep="")))
+
+        # print(i)
+        # print(cor_raw)
       }
 
 
@@ -179,24 +191,49 @@
       cor_summary = cor_raw %>%
         gather(iteration, estimate_n, contains("estimate_")) %>%
         dplyr::group_by_(.dots = c(groups, "estimate", "p.value")) %>%
-        dplyr::summarise(est_iter_min  = min(estimate_n),
-                         est_iter_q25  = quantile(estimate_n, .25),
-                         est_iter_mean = mean(estimate_n),
-                         est_iter_q75  = quantile(estimate_n, .75),
-                         est_iter_max  = max(estimate_n)) %>%
+        dplyr::summarise(est_iter_q25  = quantile(estimate_n, .25),
+                         est_iter_q75  = quantile(estimate_n, .75)) %>%
         dplyr::mutate(error_minus = abs(estimate-est_iter_q25),
                       error_plus = abs(estimate-est_iter_q75),
-                      error_mean = mean(error_minus, error_plus)) %>%
+                      error_mean = error_minus+error_plus/2) %>%
         dplyr::select(
-          -est_iter_min,
           -est_iter_q25,
-          -est_iter_mean,
           -est_iter_q75,
-          -est_iter_max,
           -error_minus,
           -error_plus)
 
+      # print(cor_summary)
+
       filename = paste("5_Draft/Figures/", textName, "_", zone_exp, "_", n, "_", n_iterations, "_", format(x = now(), format = "%Y%m%d%H%M%S"), "_", Y, "_", X,".csv", sep = "")
+
       write.csv(x = cor_summary, file = filename)
+
       return(cor_summary)
     }
+
+
+# Plotting fucntions
+
+    # Colors
+
+
+    # General plotting function
+    zone_plot = function(data,minLab,maxLab,intLab) {
+      # data = mod_lm_zone_year_mean
+      sig = merge(zones, filter(data, p.value <= 0.05), by = zone_name)
+      not = merge(zones, filter(data, p.value > 0.05), by = zone_name)
+      max = max(sig$estimate)
+      min = min(sig$estimate)
+
+      # zone_no = cbind(data.frame(coordinates(as(sig, "Spatial"))), sig$p.value)
+      # names(zone_no) = c("x","y","sig")
+
+      ggplot() +
+        geom_sf(data = sig, aes(fill = estimate)) +
+        geom_sf(data = not, fill = "grey") +
+        # geom_point(data = zone_no, aes(x, y)) +
+        # geom_text_repel(data = zone_no,aes(x = x, y = y, label = no), size = 2) +
+        scale_fill_gradientn(colors= c("black","darkred","white","dodgerblue4","dodgerblue"), values=rescale(c(min,0,max)), limits=c(min,max), breaks = seq(minLab,maxLab,intLab)) +
+        guides(fill = guide_colourbar(barwidth = 20, barheight = 1, direction = "horizontal", title.position = "top", frame.colour = "black", ticks.colour = "black")) +
+        theme_few(base_size = 15) +
+        theme(axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank(), aspect.ratio = 1, panel.grid = element_line(linetype = 3, color = "light gray"), legend.position = "bottom", legend.title.align = 0.5)}
