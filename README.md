@@ -15,7 +15,7 @@ This project is under active development.
 
 Explain interannual variability by exploring ocean-climate teleconnections, time, and terrain as predictors of the onset, melt and duration of snow by hydrologic zones.
 
-![Figure: Map of the hydrologic zones of British Columbia and the season with the highest Spearman corelation for each combination of onset, melt and duration with the Oceanic Nino Index and the Pacific Decadal Oscillation](out/season_important.png)
+![Figure: Map of the hydrologic zones of British Columbia and the season with the highest Spearman corelation for each combination of onset, melt and duration with the Oceanic Nino Index and the Pacific Decadal Oscillation](pics/season_important.png)
 
 ### Getting Help or Reporting an Issue
 
